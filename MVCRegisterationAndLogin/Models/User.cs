@@ -24,7 +24,7 @@ namespace MVCRegisterationAndLogin.Models
         public string Email { get; set; }
 
         [Display(Name="Date of birth")]
-        [DataType(DataType.DateTime)]
+        [DataType(DataType.Date)]
         [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:d MMM yyyy}")]
         public DateTime? DateOfBirth { get; set; }
 
