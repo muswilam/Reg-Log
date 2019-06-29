@@ -59,7 +59,7 @@ namespace MVCRegisterationAndLogin.Controllers
                     //send email to user
                     SendVerificationlinkEmail(user.Email, user.ActivationCode.ToString());
                     Message = "Registration successfully done , account activation link " +
-                        "has been sent to your email" + user.Email;
+                        "has been sent to your email " + user.Email;
                     Status = true;
                 }
                 #endregion
@@ -75,10 +75,30 @@ namespace MVCRegisterationAndLogin.Controllers
             return View(user);
         }
 
+        //verify acctount
+        [HttpGet]
+        public ActionResult VerifyAccount(string activationCode)
+        {
+            bool Status = false;
+            using (LoginContext context = new LoginContext())
+            {
+                context.Configuration.ValidateOnSaveEnabled = false; //this line added to avoid confirm pass doesn't match issue on save changes
 
-        //verify email 
-
-        //verfy email link
+                var user = context.Users.Where(u => u.ActivationCode == new Guid(activationCode)).FirstOrDefault();
+                if(user != null)
+                {
+                    user.IsEmailVerified = true;
+                    context.SaveChanges();
+                    Status = true;
+                }
+                else
+                {
+                    ViewBag.Message = "Invalid Request";
+                }
+            }
+            ViewBag.Status = Status;
+            return View();
+        }
 
         //login 
 
@@ -99,13 +119,13 @@ namespace MVCRegisterationAndLogin.Controllers
         [NonAction]
         public void SendVerificationlinkEmail(string email , string activationCode)
         {
-            var verifyUrl = "/User/VerifyAccount/" + activationCode;
+            var verifyUrl = "/User/VerifyAccount?activationCode=" + activationCode;
             var link = Request.Url.AbsoluteUri.Replace(Request.Url.PathAndQuery, verifyUrl);
 
             // ****************** change mail and pass to yours before any debug ***************************
-            var fromEmail = new MailAddress("***********@gmail.com", "Sully");
+            var fromEmail = new MailAddress("jackswilam@gmail.com", "Sully");
             var toEmail = new MailAddress(email);
-            var fromPass = "**********";
+            var fromPass = "Em181209Ry";
             string subject = "Your account is successfully created";
 
             string body = "<br/><br/> We 're excited to tell you that your account is successfully created." +
