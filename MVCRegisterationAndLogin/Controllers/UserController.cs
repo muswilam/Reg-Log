@@ -158,8 +158,9 @@ namespace MVCRegisterationAndLogin.Controllers
 
         //logout
         [Authorize]
+        [HttpPost]
         public ActionResult LogOut()
-        {
+        { 
             FormsAuthentication.SignOut();
             return RedirectToAction("Login", "User");
         }
