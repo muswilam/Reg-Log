@@ -101,6 +101,11 @@ namespace MVCRegisterationAndLogin.Controllers
         }
 
         //login 
+        [HttpGet]
+        public ActionResult Login()
+        {
+            return View();
+        }
 
         //login post
 
@@ -123,9 +128,9 @@ namespace MVCRegisterationAndLogin.Controllers
             var link = Request.Url.AbsoluteUri.Replace(Request.Url.PathAndQuery, verifyUrl);
 
             // ****************** change mail and pass to yours before any debug ***************************
-            var fromEmail = new MailAddress("jackswilam@gmail.com", "Sully");
+            var fromEmail = new MailAddress("**********@gmail.com", "Sully");
             var toEmail = new MailAddress(email);
-            var fromPass = "Em181209Ry";
+            var fromPass = "**********";
             string subject = "Your account is successfully created";
 
             string body = "<br/><br/> We 're excited to tell you that your account is successfully created." +
