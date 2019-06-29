@@ -7,6 +7,7 @@ using MVCRegisterationAndLogin.Models;
 using MVCRegisterationAndLogin.Common;
 using System.Net.Mail;
 using System.Net;
+using System.Web.Security;
 
 namespace MVCRegisterationAndLogin.Controllers
 {
@@ -108,8 +109,60 @@ namespace MVCRegisterationAndLogin.Controllers
         }
 
         //login post
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Login(UserLogin userLogin, string returnUrl)
+        {
+            string Message = "";
+
+            using (LoginContext context = new LoginContext())
+            {
+                var userDb = context.Users.Where(u => u.Email == userLogin.Email).FirstOrDefault();
+                if(userDb != null)
+                {
+                    if (string.Compare(Crypto.Hash(userLogin.Password), userDb.Password) == 0) // that means provided pass is valid
+                    {
+                        //if user select remeber me , save it to cookie for long time
+                        int timeOut = userLogin.RememberMe ? 525600 : 20; //525600 = one year
+                        var ticket = new FormsAuthenticationTicket(userLogin.Email, userLogin.RememberMe, timeOut);
+                        string encrypted = FormsAuthentication.Encrypt(ticket);
+                        var cookie = new HttpCookie(FormsAuthentication.FormsCookieName, encrypted);
+                        cookie.Expires = DateTime.Now.AddMinutes(timeOut);
+                        cookie.HttpOnly = true;
+                        Response.Cookies.Add(cookie);
+
+                        if (Url.IsLocalUrl(returnUrl))
+                        {
+                            return Redirect(returnUrl);
+                        }
+                        else
+                        {
+                            return RedirectToAction("Index","Home");
+                        }
+                    }
+                    else
+                    {
+                        Message = "Invalid Login";
+                    }
+                }
+                else
+                {
+                    Message = "Invalid Login";
+                }
+            }
+
+
+            ViewBag.Message = Message;
+            return View();
+        }
 
         //logout
+        [Authorize]
+        public ActionResult LogOut()
+        {
+            FormsAuthentication.SignOut();
+            return RedirectToAction("Login", "User");
+        }
 
         [NonAction]
         public bool IsEmailExist(string emailId)
