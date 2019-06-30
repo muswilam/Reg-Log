@@ -159,7 +159,7 @@ namespace MVCRegisterationAndLogin.Controllers
         //logout
         [Authorize]
         [HttpPost]
-        public ActionResult LogOut()
+        public ActionResult Logout()
         { 
             FormsAuthentication.SignOut();
             return RedirectToAction("Login", "User");
@@ -210,6 +210,37 @@ namespace MVCRegisterationAndLogin.Controllers
             })
 
             smtp.Send(messaage);
+        }
+
+        //part 3 : forget pass
+
+        public ActionResult ForgetPassword()
+        {
+            return View();
+        }
+
+        //verify the provided Email
+        [HttpPost]
+        public ActionResult ForgetPassword(string EmailId)
+        {
+
+            //send email
+            string Message = "";
+            bool Status = false;
+            using (LoginContext context = new LoginContext())
+            {
+                var account = context.Users.Where(a => a.Email == EmailId).FirstOrDefault();
+                if(account != null)
+                {
+                    //generate reset password link
+
+                }else
+                {
+                    Message = "Email is invalid";
+                }
+            }
+
+            return View();
         }
     }
 }

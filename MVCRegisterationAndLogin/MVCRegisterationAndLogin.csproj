@@ -122,6 +122,10 @@
     <Compile Include="Migrations\201906270947326_InitialUserModel.Designer.cs">
       <DependentUpon>201906270947326_InitialUserModel.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201906301014333_AddResetPasswordColumnToUsersTable.cs" />
+    <Compile Include="Migrations\201906301014333_AddResetPasswordColumnToUsersTable.Designer.cs">
+      <DependentUpon>201906301014333_AddResetPasswordColumnToUsersTable.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\UserLogin.cs" />
     <Compile Include="Models\LoginContext.cs" />
@@ -137,6 +141,7 @@
     <Content Include="Views\User\VerifyAccount.cshtml" />
     <Content Include="Views\User\Login.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="Views\User\ForgetPassword.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -150,6 +155,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Migrations\201906270947326_InitialUserModel.resx">
       <DependentUpon>201906270947326_InitialUserModel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201906301014333_AddResetPasswordColumnToUsersTable.resx">
+      <DependentUpon>201906301014333_AddResetPasswordColumnToUsersTable.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

@@ -44,6 +44,9 @@ namespace MVCRegisterationAndLogin.Models
 
         [Required]
         public System.Guid ActivationCode { get; set; }
+
+        [MaxLength(100)]
+        public string ResetPassword { get; set; }
     }
 
 }
