@@ -176,20 +176,41 @@ namespace MVCRegisterationAndLogin.Controllers
         }
 
         [NonAction]
-        public void SendVerificationlinkEmail(string email , string activationCode)
+        public void SendVerificationlinkEmail(string email, string code, string codeType = "activationCode", string emailFor = "VerifyAccount")
         {
-            var verifyUrl = "/User/VerifyAccount?activationCode=" + activationCode;
+            var verifyUrl = "";
+            if(codeType == "activationCode")
+                verifyUrl = "/User/" + emailFor + "?" + codeType + "=" + code;
+            else
+                verifyUrl = "/User/" + emailFor + "?" + codeType + "=" + code;
+
             var link = Request.Url.AbsoluteUri.Replace(Request.Url.PathAndQuery, verifyUrl);
 
             // ****************** change mail and pass to yours before any debug ***************************
             var fromEmail = new MailAddress("**********@gmail.com", "Sully");
             var toEmail = new MailAddress(email);
-            var fromPass = "**********";
-            string subject = "Your account is successfully created";
+            var fromPass = "***********";
+            string subject = "";
+            string body = "";
 
-            string body = "<br/><br/> We 're excited to tell you that your account is successfully created." +
-                " please check the link below to verify your account"+
-                "<br/><br/> <a href='"+link+"'>"+link+"</a>";
+
+            if(emailFor == "VerifyAccount")
+            {
+
+                subject = "Your account is successfully created";
+
+                body = "<br/><br/> We 're excited to tell you that your account is successfully created." +
+                    " please check the link below to verify your account" +
+                    "<br/><br/> <a href='" + link + "'>" + link + "</a>";
+            }
+
+            if(emailFor == "ResetPassword")
+            {
+                subject = "Reset Password";
+                body = "Hi, <br/> <br/> we've got a request for reset your account password , please click on the link below to reset your password" +
+                       " <br/> <br/> <a href=" + link + "> Reset Password Link </a>";
+            }
+
 
             var smtp = new SmtpClient
             {
@@ -219,28 +240,88 @@ namespace MVCRegisterationAndLogin.Controllers
             return View();
         }
 
-        //verify the provided Email
+        //check email is valid then send resetPassCode to this email 
         [HttpPost]
         public ActionResult ForgetPassword(string EmailId)
         {
-
-            //send email
             string Message = "";
-            bool Status = false;
             using (LoginContext context = new LoginContext())
             {
                 var account = context.Users.Where(a => a.Email == EmailId).FirstOrDefault();
                 if(account != null)
                 {
                     //generate reset password link
+                    string resetCode = Guid.NewGuid().ToString();
+                    SendVerificationlinkEmail(account.Email, resetCode, "resetPassCode", "ResetPassword");
+                    account.ResetPasswordCode = resetCode;
 
+                    context.Configuration.ValidateOnSaveEnabled = false; //this line for avoiding confirm pass not match issue , becus confirm not in db and validate 
+                                                                         //will throw error
+                    context.SaveChanges();
+                    Message = "Reset Password Link has been sent to your Email : " + EmailId;
                 }else
                 {
-                    Message = "Email is invalid";
+                    Message = "There is no aacount with this email";
                 }
             }
-
+            ViewBag.Message = Message;
             return View();
         }
+
+        //verify the reset Passworrd link
+        public ActionResult ResetPassword(string resetPassCode)
+        {
+            //verify the reset pass link 
+
+            //find account associated with that link
+            //redirect to reset password page
+            using (LoginContext context = new LoginContext())
+            {
+                var user = context.Users.Where(u => u.ResetPasswordCode == resetPassCode).FirstOrDefault();
+                if(user != null)
+                {
+                    ResetPasswordModel resetModel = new ResetPasswordModel();
+                    resetModel.ResetCode = resetPassCode;
+                    return View(resetModel);
+                }
+                else
+                {
+                    return HttpNotFound();
+                }
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ResetPassword(ResetPasswordModel resetModel)
+        {
+            string Message = "";
+            bool status = false;
+            if(ModelState.IsValid)
+            {
+                using (LoginContext context = new LoginContext())
+                {
+                    var user = context.Users.Where(u => u.ResetPasswordCode == resetModel.ResetCode).FirstOrDefault();
+                    if(user != null)
+                    {
+                        user.Password = Crypto.Hash(resetModel.NewPassword);
+                        user.ResetPasswordCode = ""; //this line for no one can use the same email for multipe times to reset pass
+
+                        context.Configuration.ValidateOnSaveEnabled = false;
+                        context.SaveChanges();
+                        status = true;
+                        Message = "New password is updated successfully";
+                    }
+                }
+            }else
+            {
+                Message = "Something Invalid";
+            }
+
+            ViewBag.Status = status;
+            ViewBag.Message = Message;
+            return View(resetModel);
+        }
+       
     }
 }
