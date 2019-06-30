@@ -118,7 +118,7 @@ namespace MVCRegisterationAndLogin.Controllers
             using (LoginContext context = new LoginContext())
             {
                 var userDb = context.Users.Where(u => u.Email == userLogin.Email).FirstOrDefault();
-                if(userDb != null)
+                if(userDb != null && userDb.IsEmailVerified == true)
                 {
                     if (string.Compare(Crypto.Hash(userLogin.Password), userDb.Password) == 0) // that means provided pass is valid
                     {
